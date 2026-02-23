@@ -17,6 +17,9 @@ jobs:
     steps:
       - name: 1. 检出代码
         uses: actions/checkout@v4
+        with:
+          # 取消浅克隆，获取完整历史以便进行 rebase
+          fetch-depth: 0
 
       - name: 2. 设置 Python 环境
         uses: actions/setup-python@v5
@@ -36,13 +39,26 @@ jobs:
 
       - name: 5. 提交并同步 itvlist.m3u
         run: |
+          # 配置 Git 身份
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
+          
           if [ -f "itvlist.m3u" ]; then
             git add itvlist.m3u
-            git commit -m "自动更新: $(date +'%Y-%m-%d %H:%M')" || echo "无变化"
-            git push
+            # 只有在有变化时才进行提交
+            if ! git diff --staged --quiet; then
+              git commit -m "自动更新: $(date +'%Y-%m-%d %H:%M')"
+              
+              # 核心修复步骤：先拉取远程最新改动并合并
+              # 使用 rebase 模式可以让提交记录更整洁
+              git pull --rebase origin main
+              
+              # 推送回远程仓库
+              git push origin main
+            else
+              echo "文件无任何变化，跳过提交。"
+            fi
           else
-            echo "未找到 itvlist.m3u"
+            echo "错误：未找到 itvlist.m3u 文件"
             exit 1
           fi

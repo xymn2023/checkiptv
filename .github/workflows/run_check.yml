@@ -37,14 +37,14 @@ jobs:
       - name: 4. 执行脚本 (耗时任务)
         run: python m3ucheck.py
 
-      - name: 5. 提交并同步 tvlist.m3u
+      - name: 5. 提交并同步 itvlist.m3u
         run: |
           # 配置 Git 身份
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           
-          if [ -f "tvlist.m3u" ]; then
-            git add tvlist.m3u
+          if [ -f "itvlist.m3u" ]; then
+            git add itvlist.m3u
             # 只有在有变化时才进行提交
             if ! git diff --staged --quiet; then
               git commit -m "自动更新: $(date +'%Y-%m-%d %H:%M')"
@@ -59,6 +59,6 @@ jobs:
               echo "文件无任何变化，跳过提交。"
             fi
           else
-            echo "错误：未找到 tvlist.m3u 文件"
+            echo "错误：未找到 itvlist.m3u 文件"
             exit 1
           fi
